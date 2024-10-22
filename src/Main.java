@@ -2,10 +2,10 @@ import objetos.Hospede;
 import objetos.Quarto;
 import objetos.Reserva;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 public class Main {
     public static Scanner scanner = new Scanner(System.in);
@@ -45,7 +45,7 @@ public class Main {
                     break;
                     case 7: System.out.println("Até mais!!");
                         break;
-                default:System.out.println("Opção inválida. Por favor, escolha uma opção válida (1, 2, ou 3). \n " );
+                default:System.out.println("Opção inválida. Por favor, escolha uma opção válida.  \n " );
                     break;
             }
         }
@@ -83,19 +83,30 @@ public class Main {
     }
 
     static void cadastroReserva() {
-
+        int quarto = 0;
         String tipoQuarto = " ";
-        int nQuartos = 0;
-        System.out.println("Digite seu nome: \n");
+
+        System.out.println("\nDigite seu nome: ");
         String nome = scanner.next();
         String nomeTo = nome.toLowerCase();
-        System.out.println("Digite sua data de entrada: \n");
+        System.out.print("\nData de Check-in (dia chegada): ");
         int dataEntrada = scanner.nextInt();
-        System.out.println("Digite sua data de saida: \n");
+        System.out.print("\nData de Check-out (dia saida): ");
         int dataSaida = scanner.nextInt();
         System.out.println("Digite o numero do quarto que deseja: \n");
         quartosDisponiveis();
-        int quarto = scanner.nextInt();
+        int quartoPronto = scanner.nextInt();
+       for(Quarto q: quartos){
+           if(quartoPronto==q.numero){
+               if(q.disponivel == " Indisponivel "){
+                   System.out.println(" Esse quarto esta indisponivel ou não existe tente novamente");
+                   quartosDisponiveis();
+               } else {
+                   quarto = quartoPronto;
+               }
+           }
+       }
+
         System.out.println("Digite o horario que deseja: [Manhã, tarde ou noite]: \n");
         String horario = scanner.next();
         String horarioTo = horario.toLowerCase();
@@ -144,9 +155,7 @@ public class Main {
     static void listaHospede() {
         int quartos = 0;
         System.out.println("\n---- Histórico de Reservas ---- \n");
-        for(Reserva r: reservas) {
-            System.out.println(r.nome);
-        }
+
         System.out.println( "\n Digite o nome do hospede que deseja ver o historico ou digite sair para sair \n");
         String nome = scanner.next();
         String nomeTo = nome.toLowerCase();
@@ -168,44 +177,50 @@ public class Main {
     }
 
 
-    static void checkOut(){
+    static void checkOut() {
         System.out.println("\n---- Fechamento de Conta ---- \n");
         System.out.println(" Quartos ocupados \n");
-        for(Quarto quarto: quartos) {
-            if(quarto.disponivel == " Indisponivel ")
+        for (Quarto quarto : quartos) {
+            if (quarto.disponivel == " Indisponivel ")
                 System.out.println(" Quarto numero: " + quarto.numero + " do tipo " + quarto.tipo);
         }
-        System.out.println("\n Digite o numero do quarto que deseja fazer o check out: \n");
+        System.out.println("\n Digite o numero do quarto que deseja fazer o check out ou [ 0 para retornar para o menu principal ] \n");
         int numero = scanner.nextInt();
 
-        for(Hospede hospede: hospedes) {
-            if(numero == hospede.quarto) {
-                int diasHospedados = (hospede.dataSaida - hospede.dataReserva);
-                System.out.println(" quarto encontrado \n");
-                System.out.println("Você ficou por " + diasHospedados + " dias");
-                System.out.println(" o valor total de todos os quarto foi " + hospede.valorQuarto * diasHospedados);
-                System.out.println(" precione 1 para pagar ou 2 para sair");
-                int opcao = scanner.nextInt();
+        if (numero == 0) {
+            menu();
+        } else if (numero <= 1) {
+            for (Hospede hospede : hospedes) {
+                if (numero == hospede.quarto) {
+                    int diasHospedados = (hospede.dataSaida - hospede.dataReserva);
+                    System.out.println(" quarto encontrado \n");
+                    System.out.println("Você ficou por " + diasHospedados + " dias");
+                    System.out.println(" o valor total de todos os quarto foi " + hospede.valorQuarto * diasHospedados);
+                    System.out.println(" precione 1 para pagar ou 2 para sair");
+                    int opcao = scanner.nextInt();
 
-                if (opcao == 1) {
-                    System.out.println("\nPagamento feito com sucesso até logo");
+                    if (opcao == 1) {
+                        System.out.println("\nPagamento feito com sucesso até logo");
 
-                    for (Quarto quarto : quartos) {
-                        if (numero == quarto.numero) {
-                            quarto.disponivel = " Disponivel ";
+                        for (Quarto quarto : quartos) {
+                            if (numero == quarto.numero) {
+                                quarto.disponivel = " Disponivel ";
+                            }
                         }
+                        reservas.removeIf(reserva -> numero == reserva.quarto);
+                        menu();
+                    } else {
+                        System.out.println(" voltando ");
+                        menu();
                     }
-                    reservas.removeIf(reserva -> numero == reserva.quarto);
-                    menu();
-                } else {
-                    System.out.println(" voltando ");
-                    menu();
+
                 }
-
             }
+        }else {
+            System.out.println("\nNumero de quarto incorreto tente novamente! \n");
+           checkOut();
         }
-
-
     }
+
 
 }
