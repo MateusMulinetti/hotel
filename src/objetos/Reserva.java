@@ -1,16 +1,18 @@
 package objetos;
 
+import java.time.LocalDate;
+
 public class Reserva {
     public String nome;
-    public int dataentrada;
-    public int datasaida;
+    public LocalDate dataentrada;
+    public LocalDate datasaida;
     public int quarto;
     public String tipo;
     public String horarios;
 
 
 
-    public Reserva(String nome , int dataentrada, int datasaida, int quarto, String tipo, String horarios) {
+    public Reserva(String nome , LocalDate dataentrada, LocalDate datasaida, int quarto, String tipo, String horarios) {
         this.nome = nome;
         this.dataentrada = dataentrada;
         this.datasaida = datasaida;

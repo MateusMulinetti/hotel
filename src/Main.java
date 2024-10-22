@@ -24,7 +24,7 @@ public class Main {
             System.out.println("Digite a opção que deseja: \n" +
                                 " [1 cadrastrar quarto ] \n" +
                                 " [2 reservar quarto ] \n" +
-                                " [3 ver quartos ocupados ] \n" +
+                                " [3 checkin] \n" +
                                 " [4 ver quartos disponiveis ] \n" +
                                 " [5 ver Histórico de Reservas ] \n" +
                                 " [6 fechar pedido ] \n" +
@@ -52,6 +52,8 @@ public class Main {
     }
 
     static void cadastrarQuarto(){
+        System.out.println("\n Digite o numero do quarto: ");
+        int nunQuarto = scanner.nextInt();
         System.out.println("Digite o preço diario do quarto: \n");
         double valorDiario = scanner.nextDouble();
         String tipo = "";
@@ -73,8 +75,6 @@ public class Main {
                 break;
         }
         String disponivel = " Disponivel ";
-        int nunQuarto = contadorQuartos;
-        contadorQuartos++;
 
         Quarto quarto = new Quarto(nunQuarto, tipo, valorDiario, disponivel);
         quartos.add(quarto);
@@ -89,10 +89,25 @@ public class Main {
         System.out.println("\nDigite seu nome: ");
         String nome = scanner.next();
         String nomeTo = nome.toLowerCase();
-        System.out.print("\nData de Check-in (dia chegada): ");
-        int dataEntrada = scanner.nextInt();
-        System.out.print("\nData de Check-out (dia saida): ");
-        int dataSaida = scanner.nextInt();
+        System.out.print("\nData de Check-in (dd/MM/yyyy): ");
+            String dataCheckin = scanner.next();
+            LocalDate checkin;
+
+            try (Scanner scanner = new Scanner(dataCheckin)) {
+                String datastring = scanner.next();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                checkin =LocalDate.parse(datastring, formatter);
+            }
+        System.out.print("\nData de Check-out (yyyy/mm/dd): ");
+        String dataSaida = scanner.next();
+        LocalDate checkout;
+
+        try (Scanner scanner = new Scanner(dataSaida)) {
+            String datastring = scanner.next();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            checkout =LocalDate.parse(datastring, formatter);
+        }
+
         System.out.println("Digite o numero do quarto que deseja: \n");
         quartosDisponiveis();
         int quartoPronto = scanner.nextInt();
@@ -126,9 +141,9 @@ public class Main {
         }
 
 
-        Reserva reserva = new Reserva(nomeTo, dataEntrada, dataSaida, quarto, tipoQuarto, horarioTo);
+        Reserva reserva = new Reserva(nomeTo, checkin, checkout, quarto, tipoQuarto, horarioTo);
         reservas.add(reserva);
-        Hospede hospede = new Hospede(nomeTo, dataEntrada, dataSaida, tipoQuarto, valorQuarto, quarto);
+        Hospede hospede = new Hospede(nomeTo, checkin, checkout, tipoQuarto, valorQuarto, quarto);
         hospedes.add(hospede);
 
 
@@ -155,7 +170,13 @@ public class Main {
     static void listaHospede() {
         int quartos = 0;
         System.out.println("\n---- Histórico de Reservas ---- \n");
-
+        Set<String> hospedesA = new HashSet<>();
+        for (Hospede hospedes: hospedes) {
+           hospedesA.add(hospedes.nome);
+        }
+        for (String string: hospedesA) {
+            System.out.println(string);
+        }
         System.out.println( "\n Digite o nome do hospede que deseja ver o historico ou digite sair para sair \n");
         String nome = scanner.next();
         String nomeTo = nome.toLowerCase();
@@ -176,7 +197,6 @@ public class Main {
         listaHospede();
     }
 
-
     static void checkOut() {
         System.out.println("\n---- Fechamento de Conta ---- \n");
         System.out.println(" Quartos ocupados \n");
@@ -188,14 +208,18 @@ public class Main {
         int numero = scanner.nextInt();
 
         if (numero == 0) {
-            menu();
-        } else if (numero <= 1) {
+            return;
+        } else {
             for (Hospede hospede : hospedes) {
                 if (numero == hospede.quarto) {
-                    int diasHospedados = (hospede.dataSaida - hospede.dataReserva);
+
+                    LocalDate checkInDate = hospede.dataReserva;
+                    LocalDate checkOutDate = hospede.dataSaida;
+                    long diasEstadia = ChronoUnit.DAYS.between(checkInDate, checkOutDate);
+
                     System.out.println(" quarto encontrado \n");
-                    System.out.println("Você ficou por " + diasHospedados + " dias");
-                    System.out.println(" o valor total de todos os quarto foi " + hospede.valorQuarto * diasHospedados);
+                    System.out.println("Você ficou por:  " + diasEstadia + " dias");
+                    System.out.println(" o valor total de todos os quarto foi: " + hospede.valorQuarto * diasEstadia);
                     System.out.println(" precione 1 para pagar ou 2 para sair");
                     int opcao = scanner.nextInt();
 
@@ -208,19 +232,17 @@ public class Main {
                             }
                         }
                         reservas.removeIf(reserva -> numero == reserva.quarto);
-                        menu();
+                        return;
                     } else {
                         System.out.println(" voltando ");
-                        menu();
+                        return;
                     }
-
                 }
+                System.out.println(" O quarto não foi encontrado!!! tente novamente");
+                return;
             }
-        }else {
-            System.out.println("\nNumero de quarto incorreto tente novamente! \n");
-           checkOut();
+        }
         }
     }
 
 
-}
